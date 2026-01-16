@@ -41,10 +41,10 @@ struct EditorTextView: NSViewRepresentable {
 		Coordinator(text: $text, onScroll: onScroll)
 	}
 
+	@MainActor
 	final class Coordinator: NSObject, NSTextViewDelegate {
 		@Binding var text: String
 		private let onScroll: ((Double) -> Void)?
-		private var boundsObserver: NSObjectProtocol?
 		private weak var scrollView: NSScrollView?
 
 		init(text: Binding<String>, onScroll: ((Double) -> Void)?) {
@@ -59,14 +59,12 @@ struct EditorTextView: NSViewRepresentable {
 
 		func attachScrollObserver(scrollView: NSScrollView) {
 			self.scrollView = scrollView
-			boundsObserver.map { NotificationCenter.default.removeObserver($0) }
-			boundsObserver = NotificationCenter.default.addObserver(
-				forName: NSView.boundsDidChangeNotification,
-				object: scrollView.contentView,
-				queue: .main
-			) { [weak self] _ in
-				self?.handleScroll()
-			}
+			NotificationCenter.default.removeObserver(self, name: NSView.boundsDidChangeNotification, object: nil)
+			NotificationCenter.default.addObserver(self, selector: #selector(boundsDidChange(_:)), name: NSView.boundsDidChangeNotification, object: scrollView.contentView)
+		}
+
+		@objc private func boundsDidChange(_ notification: Notification) {
+			handleScroll()
 		}
 
 		private func handleScroll() {
@@ -78,7 +76,7 @@ struct EditorTextView: NSViewRepresentable {
 		}
 
 		deinit {
-			boundsObserver.map { NotificationCenter.default.removeObserver($0) }
+			NotificationCenter.default.removeObserver(self)
 		}
 	}
 }

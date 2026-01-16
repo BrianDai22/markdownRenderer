@@ -176,10 +176,10 @@ struct DocumentSceneView: View {
 			lastDiskModDate = (try? fileURL?.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? nil
 			maybePromptDraftRestore()
 		}
-		.onChange(of: document.text) { _ in
+		.onChange(of: document.text) { _, _ in
 			scheduleDraftSave()
 		}
-		.onChange(of: editorScrollProgress) { newValue in
+		.onChange(of: editorScrollProgress) { _, newValue in
 			guard effective.scrollSyncEnabled else { return }
 			previewController.scrollTo(progress: newValue)
 		}

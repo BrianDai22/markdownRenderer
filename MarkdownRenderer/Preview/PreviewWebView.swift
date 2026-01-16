@@ -179,15 +179,20 @@ struct PreviewWebView: NSViewRepresentable {
 			}
 		}
 
-		func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+		func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
 			guard let url = navigationAction.request.url else {
 				decisionHandler(.allow)
 				return
 			}
 
 			if navigationAction.navigationType == .linkActivated {
-				NSWorkspace.shared.open(url)
-				decisionHandler(.cancel)
+				let scheme = url.scheme?.lowercased()
+				if scheme == "http" || scheme == "https" || scheme == "mailto" {
+					NSWorkspace.shared.open(url)
+					decisionHandler(.cancel)
+				} else {
+					decisionHandler(.allow)
+				}
 				return
 			}
 
