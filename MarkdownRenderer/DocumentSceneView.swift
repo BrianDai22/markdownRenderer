@@ -52,6 +52,7 @@ struct DocumentSceneView: View {
 	@State private var draftSaveTask: Task<Void, Never>? = nil
 	@State private var draftStore: DraftStore = .live
 	@State private var fileWatcher: FileSystemWatcher? = nil
+	@State private var diskAutosaveTask: Task<Void, Never>? = nil
 
 	@StateObject private var editorController = EditorController()
 	@State private var editorScrollProgress: Double = 0
@@ -133,6 +134,39 @@ struct DocumentSceneView: View {
 		}
 	}
 
+	private func scheduleAutosaveToDisk() {
+		guard let fileURL else { return }
+		guard fileURL.isFileURL else { return }
+		guard FileManager.default.isWritableFile(atPath: fileURL.path) else { return }
+
+		let expectedModDate = lastDiskModDate
+		let text = document.text
+
+		diskAutosaveTask?.cancel()
+		diskAutosaveTask = Task { @MainActor in
+			try? await Task.sleep(for: .milliseconds(1200))
+			if Task.isCancelled { return }
+
+			Task.detached(priority: .utility) { [fileURL, text, expectedModDate] in
+				let currentModDate = (try? fileURL.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? nil
+				guard currentModDate == expectedModDate else { return }
+
+				do {
+					try text.write(to: fileURL, atomically: true, encoding: .utf8)
+				} catch {
+					return
+				}
+
+				let newModDate = (try? fileURL.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? nil
+				await MainActor.run {
+					self.lastLoadedText = text
+					self.lastDiskModDate = newModDate
+					DraftStore.live.clear(for: fileURL)
+				}
+			}
+		}
+	}
+
 	private func scheduleOutlineUpdate() {
 		outlineTask?.cancel()
 		let markdown = document.text
@@ -203,9 +237,12 @@ struct DocumentSceneView: View {
 		.onDisappear {
 			fileWatcher?.stop()
 			fileWatcher = nil
+			diskAutosaveTask?.cancel()
+			diskAutosaveTask = nil
 		}
 		.onChange(of: document.text) { _, _ in
 			scheduleDraftSave()
+			scheduleAutosaveToDisk()
 			scheduleOutlineUpdate()
 		}
 		.onChange(of: editorScrollProgress) { _, newValue in
