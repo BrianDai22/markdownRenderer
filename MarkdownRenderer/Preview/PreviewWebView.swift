@@ -36,6 +36,7 @@ final class PreviewController: ObservableObject {
 	private var isReady: Bool = false
 	private var pendingMarkdown: String? = nil
 	private var pendingScrollProgress: Double? = nil
+	private var pendingAnchorID: String? = nil
 
 	func setMarkdown(_ markdown: String) {
 		pendingMarkdown = markdown
@@ -44,6 +45,11 @@ final class PreviewController: ObservableObject {
 
 	func scrollTo(progress: Double) {
 		pendingScrollProgress = min(max(progress, 0), 1)
+		flushIfPossible()
+	}
+
+	func scrollToAnchor(_ id: String) {
+		pendingAnchorID = id
 		flushIfPossible()
 	}
 
@@ -65,6 +71,13 @@ final class PreviewController: ObservableObject {
 		if let progress = pendingScrollProgress {
 			pendingScrollProgress = nil
 			webView.evaluateJavaScript("window.__scrollToProgress(\(progress));")
+		}
+
+		if let id = pendingAnchorID {
+			pendingAnchorID = nil
+			if let json = try? String(data: JSONEncoder().encode(id), encoding: .utf8) {
+				webView.evaluateJavaScript("window.__scrollToAnchor(\(json));")
+			}
 		}
 	}
 }
@@ -254,6 +267,11 @@ struct PreviewWebView: NSViewRepresentable {
 		      const doc = document.documentElement;
 		      const maxY = Math.max(1, doc.scrollHeight - window.innerHeight);
 		      window.scrollTo(0, maxY * p);
+		    };
+
+		    window.__scrollToAnchor = function(id) {
+		      const el = document.getElementById(id);
+		      if (el && el.scrollIntoView) el.scrollIntoView({ block: "start" });
 		    };
 
 		    window.__setup = function() {

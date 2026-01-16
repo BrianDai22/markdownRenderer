@@ -2,9 +2,28 @@ import SwiftUI
 
 struct SidebarView: View {
 	@EnvironmentObject private var workspace: WorkspaceCoordinator
+	let outline: [OutlineItem]
+	let onSelectOutline: (OutlineItem) -> Void
+
+	@State private var fileFilter: String = ""
 
 	var body: some View {
 		List {
+			if !outline.isEmpty {
+				Section("Outline") {
+					ForEach(outline) { item in
+						Button {
+							onSelectOutline(item)
+						} label: {
+							Text(item.title)
+								.padding(.leading, CGFloat(max(0, item.level - 1)) * 10)
+								.lineLimit(1)
+								.truncationMode(.tail)
+						}
+					}
+				}
+			}
+
 			Section("Recents") {
 				let recents = workspace.recentMarkdownFiles
 				if recents.isEmpty {
@@ -37,6 +56,9 @@ struct SidebarView: View {
 
 			if let _ = workspace.folderURL {
 				Section("Files") {
+					TextField("Filter…", text: $fileFilter)
+						.textFieldStyle(.roundedBorder)
+
 					if workspace.isIndexing {
 						HStack(spacing: 8) {
 							ProgressView()
@@ -45,7 +67,11 @@ struct SidebarView: View {
 						}
 					}
 
-					ForEach(workspace.folderMarkdownFiles, id: \.self) { url in
+					let files = workspace.folderMarkdownFiles.filter { url in
+						fileFilter.isEmpty || workspace.displayName(for: url).localizedCaseInsensitiveContains(fileFilter)
+					}
+
+					ForEach(files, id: \.self) { url in
 						Button {
 							workspace.openFile(url)
 						} label: {
@@ -61,4 +87,3 @@ struct SidebarView: View {
 		.navigationTitle("Markdown")
 	}
 }
-

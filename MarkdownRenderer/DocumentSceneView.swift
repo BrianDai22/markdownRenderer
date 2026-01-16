@@ -53,7 +53,10 @@ struct DocumentSceneView: View {
 	@State private var draftStore: DraftStore = .live
 	@State private var fileWatcher: FileSystemWatcher? = nil
 
+	@StateObject private var editorController = EditorController()
 	@State private var editorScrollProgress: Double = 0
+	@State private var outlineItems: [OutlineItem] = []
+	@State private var outlineTask: Task<Void, Never>? = nil
 
 	private var effective: LayoutSettings {
 		isPinned ? pinned : layout.global
@@ -130,12 +133,25 @@ struct DocumentSceneView: View {
 		}
 	}
 
+	private func scheduleOutlineUpdate() {
+		outlineTask?.cancel()
+		let markdown = document.text
+		outlineTask = Task { @MainActor in
+			try? await Task.sleep(for: .milliseconds(220))
+			if Task.isCancelled { return }
+			outlineItems = OutlineParser.parse(markdown: markdown)
+		}
+	}
+
 	var body: some View {
 		NavigationSplitView {
-			SidebarView()
+			SidebarView(outline: outlineItems) { item in
+				previewController.scrollToAnchor(item.id)
+				editorController.scrollTo(line: item.line)
+			}
 		} detail: {
 			HSplitView {
-				EditorTextView(text: $document.text, onScroll: { editorScrollProgress = $0 })
+				EditorTextView(controller: editorController, text: $document.text, onScroll: { editorScrollProgress = $0 })
 					.frame(minWidth: 380)
 
 				if effective.previewVisible {
@@ -176,6 +192,7 @@ struct DocumentSceneView: View {
 			lastLoadedText = document.text
 			lastDiskModDate = (try? fileURL?.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? nil
 			maybePromptDraftRestore()
+			outlineItems = OutlineParser.parse(markdown: document.text)
 			if let fileURL {
 				fileWatcher = FileSystemWatcher(url: fileURL) {
 					pollDiskIfNeeded()
@@ -189,6 +206,7 @@ struct DocumentSceneView: View {
 		}
 		.onChange(of: document.text) { _, _ in
 			scheduleDraftSave()
+			scheduleOutlineUpdate()
 		}
 		.onChange(of: editorScrollProgress) { _, newValue in
 			guard effective.scrollSyncEnabled else { return }
