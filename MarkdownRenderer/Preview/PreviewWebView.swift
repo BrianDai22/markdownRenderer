@@ -109,10 +109,11 @@ struct PreviewWebView: NSViewRepresentable {
 		let mdJSON = (try? String(data: JSONEncoder().encode(initialMarkdown), encoding: .utf8)) ?? "\"\""
 		return """
 		<!doctype html>
-		<html>
+		<html lang="en">
 		<head>
 		  <meta charset="utf-8" />
 		  <meta name="viewport" content="width=device-width, initial-scale=1" />
+		  <meta name="color-scheme" content="light dark" />
 		  \(baseHref)
 		  <style>
 		    :root {
@@ -156,6 +157,7 @@ struct PreviewWebView: NSViewRepresentable {
 		      letter-spacing: -0.01em;
 		      line-height: 1.12;
 		      margin: 1.2em 0 0.55em;
+		      scroll-margin-top: 24px;
 		    }
 		    h1 { font-size: 2.2rem; }
 		    h2 { font-size: 1.7rem; }
