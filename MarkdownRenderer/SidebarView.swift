@@ -55,6 +55,31 @@ struct SidebarView: View {
 			}
 
 			if let _ = workspace.folderURL {
+				Section("Search") {
+					TextField("Search…", text: $workspace.searchQuery)
+						.textFieldStyle(.roundedBorder)
+
+					if workspace.isSearching {
+						HStack(spacing: 8) {
+							ProgressView()
+							Text("Searching…")
+								.foregroundStyle(.secondary)
+						}
+					}
+
+					if !workspace.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+						ForEach(workspace.searchResults, id: \.self) { url in
+							Button {
+								workspace.openFile(url)
+							} label: {
+								Text(workspace.displayName(for: url))
+									.lineLimit(1)
+									.truncationMode(.middle)
+							}
+						}
+					}
+				}
+
 				Section("Files") {
 					TextField("Filter…", text: $fileFilter)
 						.textFieldStyle(.roundedBorder)
