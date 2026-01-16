@@ -20,6 +20,19 @@
 		A4F385071E56BB7EE7E40BB9 /* PreviewWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D468FFAA42A55CCD300A204 /* PreviewWebView.swift */; };
 		E1F5FCEF802235C82C244F21 /* MarkdownHTMLRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43EE0547700C3F33AEFB87A8 /* MarkdownHTMLRenderer.swift */; };
 		0CBDB8751B2BCBA29F285EDD /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2F17D93F2DFBE53B8DAE982D /* WebKit.framework */; };
+		16588B38D106B2CDA8CDAF1A /* markdown-it.14.1.0.min.js in Resources */ = {isa = PBXBuildFile; fileRef = F1D69AAE937EDD48AA13E3CB /* markdown-it.14.1.0.min.js */; };
+		9D12DDAD020D6CD3AD3A0A9E /* markdown-it-task-lists.2.1.1.min.js in Resources */ = {isa = PBXBuildFile; fileRef = 8A20D8A8D312724596E3749C /* markdown-it-task-lists.2.1.1.min.js */; };
+		B1D308B51B435317A07603B5 /* markdown-it-anchor.9.2.0.min.js in Resources */ = {isa = PBXBuildFile; fileRef = D753D11635A25F6EA8686AA5 /* markdown-it-anchor.9.2.0.min.js */; };
+		0C87888F98F9AF45926F7258 /* dompurify.3.3.1.min.js in Resources */ = {isa = PBXBuildFile; fileRef = 361A0CDF41AE3EF799B049E2 /* dompurify.3.3.1.min.js */; };
+		638FA0DCA90B58ED20D72807 /* prism-core.1.30.0.min.js in Resources */ = {isa = PBXBuildFile; fileRef = E7B90C7973A4AFF08F6E7BC2 /* prism-core.1.30.0.min.js */; };
+		9157CA50E1A93D6613A5E02B /* prism-clike.1.30.0.min.js in Resources */ = {isa = PBXBuildFile; fileRef = 5B1A8B3E6851F1BBB3C9BA11 /* prism-clike.1.30.0.min.js */; };
+		8BBF9D5CB04322162230D831 /* prism-javascript.1.30.0.min.js in Resources */ = {isa = PBXBuildFile; fileRef = 51010A356466D664CED66595 /* prism-javascript.1.30.0.min.js */; };
+		605219774F91107DC36616B7 /* prism-typescript.1.30.0.min.js in Resources */ = {isa = PBXBuildFile; fileRef = 9C8317D4976CB8034E25643E /* prism-typescript.1.30.0.min.js */; };
+		7AFBE8241CC3534C953B2568 /* prism-json.1.30.0.min.js in Resources */ = {isa = PBXBuildFile; fileRef = B958AD13459B0E9626C149FE /* prism-json.1.30.0.min.js */; };
+		669D342484A780BF52DD192A /* prism-bash.1.30.0.min.js in Resources */ = {isa = PBXBuildFile; fileRef = CDB4AB469E0F6273A1258727 /* prism-bash.1.30.0.min.js */; };
+		7732AF2D4C2FA84BA371ADB9 /* prism-python.1.30.0.min.js in Resources */ = {isa = PBXBuildFile; fileRef = 4A9CF18F99BC8E830C05E3D8 /* prism-python.1.30.0.min.js */; };
+		E4EEF989C0D68895569A70EA /* prism-swift.1.30.0.min.js in Resources */ = {isa = PBXBuildFile; fileRef = 4A82B88876ABFA3B6DE2EE2C /* prism-swift.1.30.0.min.js */; };
+		493E7E924EF2757ADA6B3415 /* prism-theme.1.30.0.min.css in Resources */ = {isa = PBXBuildFile; fileRef = A48BB190F03B33B81B51853F /* prism-theme.1.30.0.min.css */; };
 	/* End PBXBuildFile section */
 
 	/* Begin PBXFileReference section */
@@ -38,6 +51,19 @@
 		43EE0547700C3F33AEFB87A8 /* MarkdownHTMLRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownHTMLRenderer.swift; sourceTree = "<group>"; };
 		2F17D93F2DFBE53B8DAE982D /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		CA2E1ABB98B6677AC0DD80C9 /* MarkdownRenderer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MarkdownRenderer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F1D69AAE937EDD48AA13E3CB /* markdown-it.14.1.0.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "markdown-it.14.1.0.min.js"; sourceTree = "<group>"; };
+		8A20D8A8D312724596E3749C /* markdown-it-task-lists.2.1.1.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "markdown-it-task-lists.2.1.1.min.js"; sourceTree = "<group>"; };
+		D753D11635A25F6EA8686AA5 /* markdown-it-anchor.9.2.0.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "markdown-it-anchor.9.2.0.min.js"; sourceTree = "<group>"; };
+		361A0CDF41AE3EF799B049E2 /* dompurify.3.3.1.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "dompurify.3.3.1.min.js"; sourceTree = "<group>"; };
+		E7B90C7973A4AFF08F6E7BC2 /* prism-core.1.30.0.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "prism-core.1.30.0.min.js"; sourceTree = "<group>"; };
+		5B1A8B3E6851F1BBB3C9BA11 /* prism-clike.1.30.0.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "prism-clike.1.30.0.min.js"; sourceTree = "<group>"; };
+		51010A356466D664CED66595 /* prism-javascript.1.30.0.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "prism-javascript.1.30.0.min.js"; sourceTree = "<group>"; };
+		9C8317D4976CB8034E25643E /* prism-typescript.1.30.0.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "prism-typescript.1.30.0.min.js"; sourceTree = "<group>"; };
+		B958AD13459B0E9626C149FE /* prism-json.1.30.0.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "prism-json.1.30.0.min.js"; sourceTree = "<group>"; };
+		CDB4AB469E0F6273A1258727 /* prism-bash.1.30.0.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "prism-bash.1.30.0.min.js"; sourceTree = "<group>"; };
+		4A9CF18F99BC8E830C05E3D8 /* prism-python.1.30.0.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "prism-python.1.30.0.min.js"; sourceTree = "<group>"; };
+		4A82B88876ABFA3B6DE2EE2C /* prism-swift.1.30.0.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "prism-swift.1.30.0.min.js"; sourceTree = "<group>"; };
+		A48BB190F03B33B81B51853F /* prism-theme.1.30.0.min.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "prism-theme.1.30.0.min.css"; sourceTree = "<group>"; };
 	/* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,10 +133,31 @@
 		C00FEEB2F358B1A27E17F6CD /* Preview */ = {
 			isa = PBXGroup;
 			children = (
+				B55064C5CED00D6879367AE6 /* Assets */,
 				5D468FFAA42A55CCD300A204 /* PreviewWebView.swift */,
 				43EE0547700C3F33AEFB87A8 /* MarkdownHTMLRenderer.swift */,
 			);
 			path = Preview;
+			sourceTree = "<group>";
+		};
+		B55064C5CED00D6879367AE6 /* Assets */ = {
+			isa = PBXGroup;
+			children = (
+				F1D69AAE937EDD48AA13E3CB /* markdown-it.14.1.0.min.js */,
+				8A20D8A8D312724596E3749C /* markdown-it-task-lists.2.1.1.min.js */,
+				D753D11635A25F6EA8686AA5 /* markdown-it-anchor.9.2.0.min.js */,
+				361A0CDF41AE3EF799B049E2 /* dompurify.3.3.1.min.js */,
+				E7B90C7973A4AFF08F6E7BC2 /* prism-core.1.30.0.min.js */,
+				5B1A8B3E6851F1BBB3C9BA11 /* prism-clike.1.30.0.min.js */,
+				51010A356466D664CED66595 /* prism-javascript.1.30.0.min.js */,
+				9C8317D4976CB8034E25643E /* prism-typescript.1.30.0.min.js */,
+				B958AD13459B0E9626C149FE /* prism-json.1.30.0.min.js */,
+				CDB4AB469E0F6273A1258727 /* prism-bash.1.30.0.min.js */,
+				4A9CF18F99BC8E830C05E3D8 /* prism-python.1.30.0.min.js */,
+				4A82B88876ABFA3B6DE2EE2C /* prism-swift.1.30.0.min.js */,
+				A48BB190F03B33B81B51853F /* prism-theme.1.30.0.min.css */,
+			);
+			path = Assets;
 			sourceTree = "<group>";
 		};
 		5158AF9265196220F81A48A5 /* Frameworks */ = {
@@ -175,15 +222,28 @@
 		};
 /* End PBXProject section */
 
-/* Begin PBXResourcesBuildPhase section */
+	/* Begin PBXResourcesBuildPhase section */
 		0F3467201A56FD4B744DE337 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				16588B38D106B2CDA8CDAF1A /* markdown-it.14.1.0.min.js in Resources */,
+				9D12DDAD020D6CD3AD3A0A9E /* markdown-it-task-lists.2.1.1.min.js in Resources */,
+				B1D308B51B435317A07603B5 /* markdown-it-anchor.9.2.0.min.js in Resources */,
+				0C87888F98F9AF45926F7258 /* dompurify.3.3.1.min.js in Resources */,
+				638FA0DCA90B58ED20D72807 /* prism-core.1.30.0.min.js in Resources */,
+				9157CA50E1A93D6613A5E02B /* prism-clike.1.30.0.min.js in Resources */,
+				8BBF9D5CB04322162230D831 /* prism-javascript.1.30.0.min.js in Resources */,
+				605219774F91107DC36616B7 /* prism-typescript.1.30.0.min.js in Resources */,
+				7AFBE8241CC3534C953B2568 /* prism-json.1.30.0.min.js in Resources */,
+				669D342484A780BF52DD192A /* prism-bash.1.30.0.min.js in Resources */,
+				7732AF2D4C2FA84BA371ADB9 /* prism-python.1.30.0.min.js in Resources */,
+				E4EEF989C0D68895569A70EA /* prism-swift.1.30.0.min.js in Resources */,
+				493E7E924EF2757ADA6B3415 /* prism-theme.1.30.0.min.css in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-/* End PBXResourcesBuildPhase section */
+	/* End PBXResourcesBuildPhase section */
 
 	/* Begin PBXSourcesBuildPhase section */
 		BC38FC72948D98026F48B2E8 /* Sources */ = {

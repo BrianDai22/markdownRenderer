@@ -11,7 +11,7 @@ let package = Package(
 		.target(
 			name: "MarkdownRendererLib",
 			path: "MarkdownRenderer",
-			exclude: ["MarkdownRendererApp.swift", "Info.plist"]
+			exclude: ["MarkdownRendererApp.swift", "Info.plist", "Preview/Assets"]
 		),
 		.testTarget(
 			name: "MarkdownRendererLibTests",
@@ -19,4 +19,3 @@ let package = Package(
 		),
 	]
 )
-

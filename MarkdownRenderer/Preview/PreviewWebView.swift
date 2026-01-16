@@ -3,19 +3,69 @@ import SwiftUI
 import WebKit
 
 @MainActor
+private enum PreviewAssets {
+	private static var cache: [String: String] = [:]
+
+	static func js(named name: String) -> String {
+		loadText(named: name, ext: "js")
+			.replacingOccurrences(of: "</script", with: "<\\/script")
+	}
+
+	static func css(named name: String) -> String {
+		loadText(named: name, ext: "css")
+	}
+
+	private static func loadText(named name: String, ext: String) -> String {
+		let key = "\(name).\(ext)"
+		if let cached = cache[key] { return cached }
+
+		guard let url = Bundle.main.url(forResource: name, withExtension: ext) else {
+			cache[key] = ""
+			return ""
+		}
+
+		let text = (try? String(contentsOf: url, encoding: .utf8)) ?? ""
+		cache[key] = text
+		return text
+	}
+}
+
+@MainActor
 final class PreviewController: ObservableObject {
 	weak var webView: WKWebView?
+	private var isReady: Bool = false
+	private var pendingMarkdown: String? = nil
+	private var pendingScrollProgress: Double? = nil
 
-	func setBodyHTML(_ html: String) {
-		guard let webView else { return }
-		guard let json = try? String(data: JSONEncoder().encode(html), encoding: .utf8) else { return }
-		webView.evaluateJavaScript("window.__setBody(\(json));")
+	func setMarkdown(_ markdown: String) {
+		pendingMarkdown = markdown
+		flushIfPossible()
 	}
 
 	func scrollTo(progress: Double) {
-		guard let webView else { return }
-		let clamped = min(max(progress, 0), 1)
-		webView.evaluateJavaScript("window.__scrollToProgress(\(clamped));")
+		pendingScrollProgress = min(max(progress, 0), 1)
+		flushIfPossible()
+	}
+
+	func markReady() {
+		isReady = true
+		flushIfPossible()
+	}
+
+	private func flushIfPossible() {
+		guard isReady, let webView else { return }
+
+		if let markdown = pendingMarkdown {
+			pendingMarkdown = nil
+			if let json = try? String(data: JSONEncoder().encode(markdown), encoding: .utf8) {
+				webView.evaluateJavaScript("window.__renderMarkdown(\(json));")
+			}
+		}
+
+		if let progress = pendingScrollProgress {
+			pendingScrollProgress = nil
+			webView.evaluateJavaScript("window.__scrollToProgress(\(progress));")
+		}
 	}
 }
 
@@ -29,7 +79,7 @@ struct PreviewWebView: NSViewRepresentable {
 		webView.navigationDelegate = context.coordinator
 		webView.setValue(false, forKey: "drawsBackground")
 		controller.webView = webView
-		webView.loadHTMLString(wrapHTML(body: MarkdownHTMLRenderer.render(markdown: markdown), baseURL: baseURL), baseURL: baseURL)
+		webView.loadHTMLString(wrapHTML(initialMarkdown: markdown, baseURL: baseURL), baseURL: baseURL)
 		return webView
 	}
 
@@ -41,8 +91,9 @@ struct PreviewWebView: NSViewRepresentable {
 		Coordinator()
 	}
 
-	private func wrapHTML(body: String, baseURL: URL?) -> String {
+	private func wrapHTML(initialMarkdown: String, baseURL: URL?) -> String {
 		let baseHref = baseURL.map { "<base href=\"\($0.absoluteString)\">" } ?? ""
+		let mdJSON = (try? String(data: JSONEncoder().encode(initialMarkdown), encoding: .utf8)) ?? "\"\""
 		return """
 		<!doctype html>
 		<html>
@@ -129,23 +180,118 @@ struct PreviewWebView: NSViewRepresentable {
 		      box-shadow: 0 18px 50px rgba(0,0,0,0.18);
 		      margin: 1.2em 0;
 		    }
+
+		    blockquote {
+		      margin: 1.1em 0;
+		      padding: 0.2em 1em;
+		      border-left: 3px solid var(--accent);
+		      color: var(--muted);
+		    }
+
+		    table {
+		      width: 100%;
+		      border-collapse: collapse;
+		      border: 1px solid var(--border);
+		      border-radius: 12px;
+		      overflow: hidden;
+		      margin: 1.2em 0;
+		      background: var(--surface);
+		    }
+
+		    th, td {
+		      padding: 10px 12px;
+		      border-bottom: 1px solid var(--border);
+		      vertical-align: top;
+		      line-height: 1.55;
+		    }
+
+		    th {
+		      text-align: left;
+		      font-weight: 650;
+		      color: var(--text);
+		      background: rgba(255,255,255,0.03);
+		    }
+
+		    tr:last-child td { border-bottom: none; }
+
+		    hr {
+		      border: 0;
+		      height: 1px;
+		      background: var(--border);
+		      margin: 1.6em 0;
+		    }
+
+		    a:focus-visible,
+		    button:focus-visible,
+		    [tabindex]:focus-visible {
+		      outline: 2px solid var(--accent);
+		      outline-offset: 3px;
+		      border-radius: 8px;
+		    }
+
+		    @media (prefers-reduced-motion: reduce) {
+		      * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+		    }
 		  </style>
+		  <style>
+		  \(PreviewAssets.css(named: "prism-theme.1.30.0.min"))
+		  </style>
+		  <script>\(PreviewAssets.js(named: "markdown-it.14.1.0.min"))</script>
+		  <script>\(PreviewAssets.js(named: "markdown-it-anchor.9.2.0.min"))</script>
+		  <script>\(PreviewAssets.js(named: "markdown-it-task-lists.2.1.1.min"))</script>
+		  <script>\(PreviewAssets.js(named: "dompurify.3.3.1.min"))</script>
+		  <script>\(PreviewAssets.js(named: "prism-core.1.30.0.min"))</script>
+		  <script>\(PreviewAssets.js(named: "prism-clike.1.30.0.min"))</script>
+		  <script>\(PreviewAssets.js(named: "prism-javascript.1.30.0.min"))</script>
+		  <script>\(PreviewAssets.js(named: "prism-typescript.1.30.0.min"))</script>
+		  <script>\(PreviewAssets.js(named: "prism-json.1.30.0.min"))</script>
+		  <script>\(PreviewAssets.js(named: "prism-bash.1.30.0.min"))</script>
+		  <script>\(PreviewAssets.js(named: "prism-python.1.30.0.min"))</script>
+		  <script>\(PreviewAssets.js(named: "prism-swift.1.30.0.min"))</script>
 		  <script>
-		    window.__setBody = function(html) {
-		      const main = document.querySelector('main.page');
-		      if (!main) return;
-		      main.innerHTML = html;
-		    };
 		    window.__scrollToProgress = function(p) {
 		      p = Math.max(0, Math.min(1, p));
 		      const doc = document.documentElement;
 		      const maxY = Math.max(1, doc.scrollHeight - window.innerHeight);
 		      window.scrollTo(0, maxY * p);
 		    };
+
+		    window.__setup = function() {
+		      if (window.__md) return;
+		      const md = window.markdownit({ html: true, linkify: true, typographer: true });
+		      if (window.markdownItAnchor) md.use(window.markdownItAnchor, { permalink: false, tabIndex: "-1" });
+		      if (window.markdownitTaskLists) md.use(window.markdownitTaskLists, { enabled: true, label: true, labelAfter: true });
+		      window.__md = md;
+		    };
+
+		    window.__renderMarkdown = function(markdown) {
+		      window.__setup();
+		      const main = document.querySelector('main.page');
+		      if (!main) return;
+
+		      const raw = window.__md ? window.__md.render(markdown || "") : "";
+		      const uri = /^(?:(?:https?|mailto|tel|file):|[^a-z]|[a-z+\\.\\-]+(?:[^a-z+\\.\\-:]|$))/i;
+		      const clean = window.DOMPurify
+		        ? window.DOMPurify.sanitize(raw, {
+		            USE_PROFILES: { html: true },
+		            ADD_DATA_URI_TAGS: ["img"],
+		            ALLOWED_URI_REGEXP: uri,
+		          })
+		        : raw;
+
+		      main.innerHTML = clean;
+		      if (window.Prism && window.Prism.highlightAllUnder) {
+		        window.Prism.highlightAllUnder(main);
+		      }
+		    };
+
+		    window.addEventListener("DOMContentLoaded", function() {
+		      window.__renderMarkdown(\(mdJSON));
+		    });
 		  </script>
 		</head>
 		<body>
-		  <main class="page">\(body)</main>
+		  <main class="page"></main>
 		</body>
 		</html>
 		"""
@@ -155,6 +301,7 @@ struct PreviewWebView: NSViewRepresentable {
 	final class Coordinator: NSObject, WKNavigationDelegate {
 		private var lastBaseURL: URL?
 		private var renderTask: Task<Void, Never>?
+		private weak var controller: PreviewController?
 
 		func makeConfiguration() -> WKWebViewConfiguration {
 			let config = WKWebViewConfiguration()
@@ -163,10 +310,11 @@ struct PreviewWebView: NSViewRepresentable {
 		}
 
 		func update(webView: WKWebView, controller: PreviewController, markdown: String, baseURL: URL?) {
+			self.controller = controller
 			if lastBaseURL != baseURL {
 				lastBaseURL = baseURL
 				let html = PreviewWebView(controller: controller, markdown: markdown, baseURL: baseURL)
-					.wrapHTML(body: MarkdownHTMLRenderer.render(markdown: markdown), baseURL: baseURL)
+					.wrapHTML(initialMarkdown: markdown, baseURL: baseURL)
 				webView.loadHTMLString(html, baseURL: baseURL)
 				return
 			}
@@ -175,8 +323,12 @@ struct PreviewWebView: NSViewRepresentable {
 			renderTask = Task { @MainActor in
 				try? await Task.sleep(for: .milliseconds(220))
 				if Task.isCancelled { return }
-				controller.setBodyHTML(MarkdownHTMLRenderer.render(markdown: markdown))
+				controller.setMarkdown(markdown)
 			}
+		}
+
+		func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+			controller?.markReady()
 		}
 
 		func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
