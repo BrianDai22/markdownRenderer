@@ -13,6 +13,7 @@
 - Drag/drop `.md` onto window to open
 - Cmd+O open file; multi-file open → tabs
 - Close tab prompts if dirty
+- Autosave to disk (safe when no external changes)
 
 ## “Pretty” preview
 
