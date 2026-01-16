@@ -4,13 +4,15 @@ import Foundation
 @MainActor
 final class WorkspaceCoordinator: ObservableObject {
 	@Published var folderURL: URL? {
-		didSet { indexFolder() }
+		didSet { configureFolder() }
 	}
 
 	@Published private(set) var folderMarkdownFiles: [URL] = []
 	@Published private(set) var isIndexing: Bool = false
 
 	private var indexGeneration: Int = 0
+	private var folderWatcher: FileSystemWatcher?
+	private var reindexTask: Task<Void, Never>?
 
 	var recentMarkdownFiles: [URL] {
 		NSDocumentController.shared.recentDocumentURLs
@@ -39,6 +41,34 @@ final class WorkspaceCoordinator: ObservableObject {
 		let filePath = url.standardizedFileURL.path
 		guard filePath.hasPrefix(folderPath + "/") else { return url.lastPathComponent }
 		return String(filePath.dropFirst(folderPath.count + 1))
+	}
+
+	private func configureFolder() {
+		reindexTask?.cancel()
+		folderWatcher?.stop()
+		folderWatcher = nil
+
+		guard let folderURL else {
+			folderMarkdownFiles = []
+			isIndexing = false
+			return
+		}
+
+		folderWatcher = FileSystemWatcher(url: folderURL) { [weak self] in
+			guard let self else { return }
+			self.scheduleReindex()
+		}
+		folderWatcher?.start()
+		indexFolder()
+	}
+
+	private func scheduleReindex() {
+		reindexTask?.cancel()
+		reindexTask = Task { @MainActor in
+			try? await Task.sleep(for: .milliseconds(250))
+			if Task.isCancelled { return }
+			indexFolder()
+		}
 	}
 
 	private func indexFolder() {

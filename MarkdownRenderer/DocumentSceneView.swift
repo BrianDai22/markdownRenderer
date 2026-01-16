@@ -51,6 +51,7 @@ struct DocumentSceneView: View {
 	@State private var showDraftRestorePrompt: Bool = false
 	@State private var draftSaveTask: Task<Void, Never>? = nil
 	@State private var draftStore: DraftStore = .live
+	@State private var fileWatcher: FileSystemWatcher? = nil
 
 	@State private var editorScrollProgress: Double = 0
 
@@ -175,6 +176,16 @@ struct DocumentSceneView: View {
 			lastLoadedText = document.text
 			lastDiskModDate = (try? fileURL?.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? nil
 			maybePromptDraftRestore()
+			if let fileURL {
+				fileWatcher = FileSystemWatcher(url: fileURL) {
+					pollDiskIfNeeded()
+				}
+				fileWatcher?.start()
+			}
+		}
+		.onDisappear {
+			fileWatcher?.stop()
+			fileWatcher = nil
 		}
 		.onChange(of: document.text) { _, _ in
 			scheduleDraftSave()
@@ -182,9 +193,6 @@ struct DocumentSceneView: View {
 		.onChange(of: editorScrollProgress) { _, newValue in
 			guard effective.scrollSyncEnabled else { return }
 			previewController.scrollTo(progress: newValue)
-		}
-		.onReceive(Timer.publish(every: 2.0, on: .main, in: .common).autoconnect()) { _ in
-			pollDiskIfNeeded()
 		}
 		.focusedValue(\.layoutActions, LayoutActions(
 			togglePreview: { withMutableLayout { $0.previewVisible.toggle() } },
