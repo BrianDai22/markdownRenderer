@@ -50,6 +50,7 @@ struct DocumentSceneView: View {
 	@State private var pendingDraftText: String? = nil
 	@State private var showDraftRestorePrompt: Bool = false
 	@State private var draftSaveTask: Task<Void, Never>? = nil
+	@State private var draftStore: DraftStore = .live
 
 	@State private var editorScrollProgress: Double = 0
 
@@ -88,28 +89,28 @@ struct DocumentSceneView: View {
 		Task.detached(priority: .utility) { [fileURL] in
 			let diskText = (try? String(contentsOf: fileURL, encoding: .utf8)) ?? ""
 			await MainActor.run {
-				self.lastDiskModDate = modDate
-				if diskText == self.document.text {
-					self.lastLoadedText = diskText
-					DraftStore.clear(for: fileURL)
-					return
-				}
+					self.lastDiskModDate = modDate
+					if diskText == self.document.text {
+						self.lastLoadedText = diskText
+						DraftStore.live.clear(for: fileURL)
+						return
+					}
 
 				if self.isDirtyRelativeToDisk {
 					self.pendingDiskText = diskText
 					self.showDiskReloadPrompt = true
-				} else {
-					self.document.text = diskText
-					self.lastLoadedText = diskText
-					DraftStore.clear(for: fileURL)
+					} else {
+						self.document.text = diskText
+						self.lastLoadedText = diskText
+						DraftStore.live.clear(for: fileURL)
+					}
 				}
 			}
 		}
-	}
 
 	private func maybePromptDraftRestore() {
 		guard let fileURL else { return }
-		guard let draft = DraftStore.load(for: fileURL) else { return }
+		guard let draft = draftStore.load(for: fileURL) else { return }
 		guard draft != document.text else { return }
 		pendingDraftText = draft
 		showDraftRestorePrompt = true
@@ -123,7 +124,7 @@ struct DocumentSceneView: View {
 			try? await Task.sleep(for: .milliseconds(900))
 			if Task.isCancelled { return }
 			Task.detached(priority: .utility) { [fileURL, text] in
-				DraftStore.save(text, for: fileURL)
+				DraftStore.live.save(text, for: fileURL)
 			}
 		}
 	}
@@ -209,7 +210,7 @@ struct DocumentSceneView: View {
 			}
 			Button("Discard", role: .destructive) {
 				if let fileURL {
-					DraftStore.clear(for: fileURL)
+					draftStore.clear(for: fileURL)
 				}
 				pendingDraftText = nil
 			}
@@ -230,38 +231,5 @@ struct DocumentSceneView: View {
 		} message: {
 			Text("This file was modified outside the app.")
 		}
-	}
-}
-
-import CryptoKit
-
-private enum DraftStore {
-	static func load(for fileURL: URL) -> String? {
-		guard let url = draftURL(for: fileURL) else { return nil }
-		return try? String(contentsOf: url, encoding: .utf8)
-	}
-
-	static func save(_ text: String, for fileURL: URL) {
-		guard let url = draftURL(for: fileURL) else { return }
-		do {
-			try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-			try text.data(using: .utf8)?.write(to: url, options: [.atomic])
-		} catch {
-			// best-effort
-		}
-	}
-
-	static func clear(for fileURL: URL) {
-		guard let url = draftURL(for: fileURL) else { return }
-		try? FileManager.default.removeItem(at: url)
-	}
-
-	private static func draftURL(for fileURL: URL) -> URL? {
-		guard let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
-		let root = base.appendingPathComponent("MarkdownRenderer", isDirectory: true).appendingPathComponent("Drafts", isDirectory: true)
-		let key = fileURL.standardizedFileURL.path
-		let digest = SHA256.hash(data: Data(key.utf8))
-		let name = digest.compactMap { String(format: "%02x", $0) }.joined()
-		return root.appendingPathComponent(name).appendingPathExtension("txt")
 	}
 }
