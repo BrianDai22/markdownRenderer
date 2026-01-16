@@ -18,7 +18,7 @@
 
 - Typography-first “article” layout
 - Light/dark themes (CSS tokens)
-- Code blocks styled (syntax highlight later)
+- Code blocks styled + highlighted (Prism)
 
 ## File association
 
@@ -39,4 +39,4 @@
 - LaTeX/KaTeX math
 - Workspace folder tree indexing optimizations
 - Robust cursor↔preview source mapping
-
+- Full-text workspace search
